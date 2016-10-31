@@ -111,16 +111,13 @@ addToDigest = (pr, digest) ->
   updatedAt = pr.updated_at
   user = pr.user.login
   people = user
-
-  if !digest['Unassigned']
-    digest['Unassigned'] = []
+  digest['Unassigned'] ?= []
 
   if pr.assignee
     people = "#{ user }->#{ pr.assignee.login }"
     slackName = SLACK_USER_MAP[pr.assignee.login]
     if slackName
-      if !digest[slackName]
-        digest[slackName] = []
+      digest[slackName] ?= []
       digest[slackName].push ":octocat: #{ title } - #{ people } - #{ url } - #{ lastUpdated updatedAt }\n"
   else
     people = "#{ user } (Unassigned)"
