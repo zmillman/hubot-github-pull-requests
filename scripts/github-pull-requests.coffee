@@ -26,7 +26,7 @@ Octonode = Promise.promisifyAll(require 'octonode')
 fs = require 'fs'
 HubotCron = require 'hubot-cronjob'
 
-REMINDER_CRON = '18 9,12,17,18 * * 1-5'
+REMINDER_CRON = '45 9,12,18 * * 1-5'
 REMINDER_TIMEZONE = 'America/Los_Angeles'
 
 # default - running from the root of hubot/ when using external script
