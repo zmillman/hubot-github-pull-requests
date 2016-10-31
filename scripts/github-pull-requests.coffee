@@ -26,18 +26,24 @@ Octonode = Promise.promisifyAll(require 'octonode')
 fs = require 'fs'
 HubotCron = require 'hubot-cronjob'
 
+# run Monday to Friday at 9:45a, 12:45p, 6:45p, Pacific (US)
 REMINDER_CRON = '45 9,12,18 * * 1-5'
 REMINDER_TIMEZONE = 'America/Los_Angeles'
 
 # default - running from the root of hubot/ when using external script
-gitmap = process.env.GITMAP_FILE_PATH or './data/gitmap.json'
+# avoid hard failures anywhere in the hubot infrastructure
+GITMAP_PATH = process.env.GITMAP_FILE_PATH or './data/gitmap.json'
 try
-  gitdata = fs.readFileSync gitmap, 'utf-8'
+  gitdata = fs.readFileSync GITMAP_PATH, 'utf-8'
   if gitdata
     gitmapData = JSON.parse(gitdata)
 catch error
+  # can't read data: no users will be messaged
   console.log('Unable to read or load file', error)
 
+# Creates a map of each user's GitHub username to their Slack username
+#
+# @return [Object] map of the form { githubUsername: slackUsername}
 createUserMap = ->
   mapGit = {}
   mapGit[gitmapData.gitmap[i].github] = gitmapData.gitmap[i].slack for i in [0...gitmapData.gitmap.length]
@@ -45,7 +51,9 @@ createUserMap = ->
 
 SLACK_USER_MAP = createUserMap()
 
-
+# Connect to GitHub and populate repos[] with all repos available
+# to the eng team (GITHUB_PRS_TEAM_ID)
+# option to filter by the repo owner name (see original README)
 getAllRepos = (gitHub, repos, done) ->
   getReposByPage = (page) ->
     userGitHub = if process.env.GITHUB_PRS_TEAM_ID?
@@ -77,7 +85,9 @@ getAllRepos = (gitHub, repos, done) ->
 
   getReposByPage 1
 
-
+# create a digest hash that has a list of all users' pending pull request reviews
+# pr[] object defined in robot
+# side-effect modification of digest (mod of original code)
 addToDigest = (pr, digest) ->
   lastUpdated = (date) ->
     pluralize = (amount, unit) ->
@@ -148,9 +158,11 @@ getAllPullRequests = (gitHub, repos, bot) ->
         try
           bot.send {room: key}, prDashboard
         catch error
-          console.log("Unable to send PR reminder to user #{key}." )
+          # will happen if the Slack username is invalid
+          bot.logger.error("Unable to send PR reminder to user #{key}." )
 
-    console.log "#{digest['Unassigned'].length} unassigned PRs."
+    # future feature: display a list of unassigned PRs on request
+    # console.log "#{digest['Unassigned'].length} unassigned PRs."
 
 module.exports = (robot) ->
   gitHub = if process.env.GITHUB_PRS_GHE_API_URL?
