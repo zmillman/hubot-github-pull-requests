@@ -26,9 +26,11 @@ Octonode = Promise.promisifyAll(require 'octonode')
 fs = require 'fs'
 HubotCron = require 'hubot-cronjob'
 
-# run Monday to Friday at 9:45a, 12:45p, 6:45p, Pacific (US)
-REMINDER_CRON = '45 9,12,18 * * 1-5'
+# run Monday to Friday at 9:45a and 6:45p, Pacific (US)
+REMINDER_CRON = '45 9,18 * * 1-5'
 REMINDER_TIMEZONE = 'America/Los_Angeles'
+# optout list of Slack names
+REMINDER_OPTOUT_LIST = [ 'eric', 'zeus' ]
 
 # default - running from the root of hubot/ when using external script
 # avoid hard failures anywhere in the hubot infrastructure
@@ -153,7 +155,7 @@ getAllPullRequests = (gitHub, repos, bot) ->
         for i of value
           prDashboard += value[i]
         try
-          bot.send {room: key}, prDashboard
+          bot.send {room: key}, prDashboard if key not in REMINDER_OPTOUT_LIST
         catch error
           # will happen if the Slack username is invalid
           bot.logger.error("Unable to send PR reminder to user #{key}." )
@@ -167,13 +169,18 @@ module.exports = (robot) ->
   else
     Octonode.client(process.env.GITHUB_PRS_OAUTH_TOKEN)
 
+# TODO: this is retaining state between runs and causing duplication
   repos = []
 
   messageAll = -> getAllRepos gitHub, repos, ->
     getAllPullRequests gitHub, repos, robot
 
-  new HubotCron REMINDER_CRON, REMINDER_TIMEZONE, messageAll
+# disable cron for now
+#  new HubotCron REMINDER_CRON, REMINDER_TIMEZONE, messageAll
+#  robot.logger.info "Starting PR reminder cron for #{REMINDER_CRON}"
 
-  robot.respond /(pr\b|prs)/i, (msg) ->
-    getAllRepos gitHub, repos, ->
-      getAllPullRequests gitHub, repos, robot
+# uncomment during testing; probably not a good idea to allow this to be
+# triggered by anyone in prod
+  # robot.respond /(pr\b|prs)/i, (msg) ->
+  #   getAllRepos gitHub, repos, ->
+  #     getAllPullRequests gitHub, repos, robot
