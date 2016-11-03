@@ -32,7 +32,7 @@ REMINDER_CRON = '45 9 * * 1-5'
 # REMINDER_CRON = '*/2 * * * *'
 REMINDER_TIMEZONE = 'America/Los_Angeles'
 # optout list of Slack names
-REMINDER_WHITELIST = [ 'l8on', 'zach', 'tim', 'rachael', 'charlie', 'sarahmaeve' ]
+REMINDER_WHITELIST = {'l8on', 'zach', 'tim', 'rachael', 'charlie', 'sarahmaeve'}
 
 # default - running from the root of hubot/ when using external script
 # avoid hard failures anywhere in the hubot infrastructure
@@ -80,7 +80,7 @@ getAllRepos = (gitHub, repos, done) ->
         for repo in reposByPage
           repoOwner = repo.full_name.split('/')[0]
 
-          repos.push repo if repoIsDesired(repoOwner) and repo not in repos
+          repos.push repo if repoIsDesired(repoOwner)
 
         if reposByPage.length is 100
           getReposByPage page + 1
@@ -123,7 +123,7 @@ addToDigest = (pr, digest) ->
     if slackName
       digest[slackName] ?= []
       headline = ":octocat: #{ title } - #{ people } - #{ url } - #{ lastUpdated updatedAt }\n"
-      digest[slackName].push headline if headline not in digest[slackName]
+      digest[slackName].push headline
   else
     people = "#{ user } (Unassigned)"
     digest['Unassigned'].push ":octocat: #{ title } - #{ people } - #{ url } - #{ lastUpdated updatedAt }\n"
@@ -156,7 +156,7 @@ getAllPullRequests = (gitHub, repos, digest, bot) ->
         for i of value
           prDashboard += value[i]
         try
-          bot.send {room: key}, prDashboard if key in REMINDER_WHITELIST
+          bot.send {room: key}, prDashboard if REMINDER_WHITELIST[key]
         catch error
           # will happen if the Slack username is invalid
           bot.logger.error("Unable to send PR reminder to user #{key}." )
@@ -180,9 +180,9 @@ module.exports = (robot) ->
   robot.logger.info "Starting PR reminder cron with pattern #{REMINDER_CRON} in tz #{REMINDER_TIMEZONE}"
 
 # uncomment during testing; probably not a good idea to allow this to be
-# triggered by anyone in prod
-  # robot.respond /(pr\b|prs)/i, (msg) ->
-  #   repos = []
-  #   digest = {}
-  #   getAllRepos gitHub, repos, ->
-  #     getAllPullRequests gitHub, repos, digest, robot
+# # triggered by anyone in prod
+#   robot.respond /(pr\b|prs)/i, (msg) ->
+#     repos = []
+#     digest = {}
+#     getAllRepos gitHub, repos, ->
+#       getAllPullRequests gitHub, repos, digest, robot
