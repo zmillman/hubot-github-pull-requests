@@ -32,7 +32,7 @@ REMINDER_CRON = '45 9 * * 1-5'
 # REMINDER_CRON = '*/2 * * * *'
 REMINDER_TIMEZONE = 'America/Los_Angeles'
 # optout list of Slack names
-REMINDER_WHITELIST = {'l8on', 'zach', 'tim', 'rachael', 'charlie', 'sarahmaeve'}
+REMINDER_WHITELIST = {'charlie', 'kate', 'l8on', 'rachael', 'randal', 'sarahmaeve', 'tim', 'zach', 'zeus'}
 
 # default - running from the root of hubot/ when using external script
 # avoid hard failures anywhere in the hubot infrastructure
