@@ -32,7 +32,7 @@ REMINDER_CRON = '45 9 * * 1-5'
 # REMINDER_CRON = '*/2 * * * *'
 REMINDER_TIMEZONE = 'America/Los_Angeles'
 # optout list of Slack names
-REMINDER_WHITELIST = {'charlie', 'kate', 'l8on', 'rachael', 'randal', 'sarahmaeve', 'tim', 'zach', 'zeus'}
+REMINDER_WHITELIST = {'charlie', 'emily', 'kate', 'l8on', 'rachael', 'randal', 'real', 'sarahmaeve', 'tim', 'zach', 'zeus'}
 
 # default - running from the root of hubot/ when using external script
 # avoid hard failures anywhere in the hubot infrastructure
@@ -186,3 +186,7 @@ module.exports = (robot) ->
 #     digest = {}
 #     getAllRepos gitHub, repos, ->
 #       getAllPullRequests gitHub, repos, digest, robot
+
+  robot.respond /pruserlist/i, (msg) ->
+    userlist = JSON.stringify(REMINDER_WHITELIST)
+    msg.send "PR review notification user list: #{userlist}"
